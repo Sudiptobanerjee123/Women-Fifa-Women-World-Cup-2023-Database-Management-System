@@ -157,3 +157,63 @@ VALUES
 
 -- Select all records from the Standings table
 SELECT * FROM Standings;
+
+
+-- Advanced Queries --
+
+-- Count the total number of Goals using Window Function --
+SELECT
+            t.TeamName,
+            COUNT(g.GoalID) AS TotalGoals
+        FROM
+            Team t
+        JOIN
+            Player p ON t.TeamID = p.TeamID
+        JOIN
+            Goal g ON p.PlayerID = g.PlayerID
+        GROUP BY
+            t.TeamName
+        ORDER BY
+            TotalGoals DESC;
+
+
+-- Display the cummulative points and TeamRank --
+SELECT
+            TeamID,
+            Points,
+            RANK() OVER (ORDER BY Points DESC) AS TeamRank
+        FROM
+            Standing;
+
+-- Display the tean name, MatchDate and the RunningTotal goals --
+
+SELECT
+            TeamID,
+            MatchesDate,
+            SUM(GoalsFor) OVER (PARTITION BY TeamID ORDER BY MatchesDate) AS RunningTotalGoals
+        FROM (
+            SELECT
+                m.MatchesDate,
+                m.TeamID1 AS TeamID,
+                COUNT(g.GoalID) AS GoalsFor
+            FROM
+        Matches m
+        LEFT JOIN
+            Goal g ON m.MatchesID = g.MatchesID
+        GROUP BY
+            m.MatchesDate, m.TeamID1
+
+        UNION ALL
+
+        SELECT
+            m.MatchesDate,
+            m.TeamID2 AS TeamID,
+            COUNT(g.GoalID) AS GoalsFor
+        FROM
+            Matches m
+        LEFT JOIN
+            Goal g ON m.MatchesID = g.MatchesID
+        GROUP BY
+            m.MatchesDate, m.TeamID2
+        ) AS combined_data;
+
